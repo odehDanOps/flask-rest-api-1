@@ -4,6 +4,7 @@ from peewee import *
 
 DATABASE = SqliteDatabase('courses.sqlite')
 
+
 class Course(Model):
     title = CharField()
     url = CharField(unique=True)
@@ -11,6 +12,7 @@ class Course(Model):
 
     class Meta:
         database = DATABASE
+
 
 class Review(Model):
     course = ForeignKeyField(Course, related_name='review_set')
@@ -23,5 +25,5 @@ class Review(Model):
 
 def initialize():
     DATABASE.connect()
-    DATABASE.create_tables([Course,Review], safe=True)
+    DATABASE.create_tables([Course, Review], safe=True)
     DATABASE.close()
