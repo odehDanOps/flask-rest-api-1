@@ -1,8 +1,9 @@
-from flask import jsonify, Blueprint, abort
+import json
+from flask import jsonify, Blueprint, abort, g, make_response
 
 from flask_restful import (Resource, Api, reqparse, inputs, fields,
                                url_for, marshal, marshal_with)
-
+from auth import auth
 import models
 
 review_fields = {
@@ -60,9 +61,12 @@ class ReviewList(Resource):
         ]}
 
     @marshal_with(review_fields)
+    @auth.login_required
     def post(self):
         args = self.reqparse.parse_args()
-        review = models.Review.create(**args)
+        review = models.Review.create(
+            created_by = g.user,
+            **args)
         return (add_course(review), 201, {
                 'Location': url_for('resources.reviews.review', id=review.id)
                })
@@ -72,11 +76,40 @@ class Review(Resource):
     def get(self, id):
         return add_course(review_or_404(id))
 
+    @marshal_with(review_fields)
+    @auth.login_required
     def put(self, id):
-        return jsonify({'course': 1, 'rating': 5})
+        args = self.reqparse.parse_args()
+        try:
+            review = models.Review.select().where(
+                models.Review.created_by==g.user,
+                models.Review.id==id
+            ).get()
+        except models.Review.DoesNotExist:
+            return make_response(json.dumps(
+            {'error': 'That review does not exist or is not editable.'}
+            ), 403)
+        query = review.update(**args)
+        query.execute()
+        review = add_course(review_or_404(id))
+        return (review, 200, {
+            'Location': url_for('resources.reviews.review', id=id)
+            })
 
+    @auth.login_required
     def delete(self, id):
-        return jsonify({'course': 1, 'rating': 5})
+        try:
+            review = models.Review.select().where(
+                models.Review.created_by==g.user,
+                models.Review.id==id
+            ).get()
+        except models.Review.DoesNotExist:
+            return make_response(json.dumps(
+            {'error': 'That review does not exist or is not editable.'}
+            ), 403)
+        query = review.delete()
+        query.execute()
+        return '', 204, {'Location': url_for('resources.reviews.reviews')}
 
 
 reviews_api = Blueprint('resources.reviews', __name__)
