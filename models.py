@@ -1,8 +1,8 @@
 import datetime
 
 from argon2 import PasswordHasher
-from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer,
-                        BadSignature, SignatureExpired)
+from itsdangerous import (BadSignature, SignatureExpired)
+from itsdangerous.serializer import Serializer
 from peewee import *
 import config
 

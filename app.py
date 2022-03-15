@@ -2,7 +2,7 @@ from flask import Flask, g, jsonify
 from functools import wraps
 
 from flask_limiter import Limiter
-from flask_limiter.util import get_ipaddr
+from flask_limiter.util import get_remote_address
 from flask_login import login_required
 
 from auth import auth
@@ -19,7 +19,7 @@ app.register_blueprint(courses_api)
 app.register_blueprint(reviews_api, url_prefix='/api/v1')
 app.register_blueprint(users_api, url_prefix='/api/v1')
 
-limiter = Limiter(app, global_limits=[config.DEFAULT_RATE], key_func=get_ipaddr)
+limiter = Limiter(app, default_limits=[config.DEFAULT_RATE], key_func=get_remote_address)
 limiter.limit("40/day")(users_api)
 limiter.limit(config.DEFAULT_RATE, per_method=True,
     methods=["post", "put", "delete"])(courses_api)

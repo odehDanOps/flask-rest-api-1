@@ -109,10 +109,10 @@ class Review(Resource):
             ), 403)
         query = review.delete()
         query.execute()
-        return '', 204, {'Location': url_for('resources.reviews.reviews')}
+        return '', 204, {'Location': url_for('reviews')}
 
 
-reviews_api = Blueprint('resources.reviews', __name__)
+reviews_api = Blueprint('reviews', __name__)
 api = Api(reviews_api)
 api.add_resource(
     ReviewList,
